@@ -90,9 +90,9 @@ Hard constraints must be strictly satisfied. Any operational candidate violating
 
 1. **Power Flow Physics (Kirchhoff's Laws):**
    - Real power balance at each bus $i$:
-     $$g_{P,i}(x) = P_{g,i} - P_{d,i} - \sum_{k \in \mathcal{N}_i} P_{ik}(V, \theta) = 0$$
+     $$h_{P,i}(x) = P_{g,i} - P_{d,i} - \sum_{k \in \mathcal{N}_i} P_{ik}(V, \theta) = 0$$
    - Reactive power balance at each bus $i$:
-     $$g_{Q,i}(x) = Q_{g,i} - Q_{d,i} - \sum_{k \in \mathcal{N}_i} Q_{ik}(V, \theta) = 0$$
+     $$h_{Q,i}(x) = Q_{g,i} - Q_{d,i} - \sum_{k \in \mathcal{N}_i} Q_{ik}(V, \theta) = 0$$
 2. **Transmission Thermal Current & MVA Limits:**
    - Apparent power flow on line $(i, k)$:
      $$g_{\text{thermal}, ik}(x) = S_{ik}(x) - S_{ik}^{\max} \le 0, \quad \forall (i, k) \in \mathcal{E}$$

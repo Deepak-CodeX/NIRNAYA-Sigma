@@ -61,7 +61,18 @@
               "constraint_id": { "type": "string" },
               "target_element": { "type": "string" },
               "observed_value": { "type": "number" },
-              "limit_value": { "type": "number" },
+              "limit_value": {
+                "description": "Scalar limit breached, or two-element reference interval [lower_bound, upper_bound] defining the violated operating band where lower_bound <= upper_bound.",
+                "oneOf": [
+                  { "type": "number" },
+                  {
+                    "type": "array",
+                    "items": { "type": "number" },
+                    "minItems": 2,
+                    "maxItems": 2
+                  }
+                ]
+              },
               "violation_magnitude": { "type": "number", "minimum": 0.0 },
               "unit": { "type": "string" }
             }

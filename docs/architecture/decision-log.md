@@ -22,6 +22,10 @@
 | **ADR-008** | Sequestered Role of Large Language Models to Structured Natural-Language Explanation | **PROPOSED** | 2026-10-24 |
 | **ADR-009** | Immutable SHA-256 Hash Chaining for Decision Record Provenance | **PROPOSED** | 2026-10-24 |
 | **ADR-010** | Deterministic Tri-State Feasibility (`FEASIBLE`, `INFEASIBLE`, `UNKNOWN`) and Freshness Envelopes | **PROPOSED** | 2026-10-24 |
+| **ADR-011** | Formal Specification of Interval Constraint Bounds (`limit_value` Two-Element Array) | **PROPOSED** | 2026-10-24 |
+| **ADR-012** | Ingress and Internal Domain Schema Extensibility Policy (Edge Lenience vs Core Strictness) | **PROPOSED** | 2026-10-24 |
+| **ADR-013** | Three-Tier Authorization Governance (Requester, Reviewer, Approver Role Separation) | **PROPOSED** | 2026-10-24 |
+| **ADR-014** | Discovery & Handshake Framework for Static Network Model Ingress | **PROPOSED** | 2026-10-24 |
 
 ---
 
@@ -175,3 +179,110 @@
 - **Consequences:** System will refuse to evaluate actions if telemetry is $>120$ seconds old, requiring operators to rely on local SCADA meters until communication is restored.
 - **Validation Needed:** Hardware-in-the-loop tests verifying that simulated telemetry dropouts cleanly trigger the fail-closed lockout state within 120 seconds.
 - **Conditions Triggering Reconsideration:** Operational scenarios where human dispatchers are legally authorized to operate blind under emergency executive orders.
+
+---
+
+### ADR-011: Formal Specification of Interval Constraint Bounds (`limit_value` Two-Element Array)
+- **Decision Identifier:** `ADR-011`
+- **Status:** `PROPOSED`
+- **Context:** In `decision_problem.json`, hard constraints can specify `"operator": "IN_RANGE"` (e.g. bus voltage band $[V_{\min}, V_{\max}]$). In `model_evaluation.json`, constraint violations must report breached limits. Previously, `limit_value` was typed strictly as a scalar number in evaluation violations, causing schema validation errors when array intervals were reported, and neither schema constrained array length or bounds ordering.
+- **Decision:** Formalize `limit_value` across `decision_problem.json` and `model_evaluation.json` as a discriminated union (`oneOf`):
+  1. A single scalar `number` for inequality/equality operators (`<=`, `>=`, `==`).
+  2. A closed two-element `array` of numbers (`minItems: 2, maxItems: 2, items: { type: "number" }`) defining $[L, U]$ for `"IN_RANGE"` operators.
+  Mandate that runtime validation (Phase 1 Pydantic validators) strictly asserts $L \le U$. In `model_evaluation.json`, solvers may report either the specific scalar boundary breached or the reference two-element interval $[L, U]$.
+- **Alternatives Considered:**
+  1. *Decompose all range constraints into separate lower/upper constraints in problem definition:* Forces problem modelers to split statutory bands into two artificial constraints ($g_{\text{volt\_min}}$ and $g_{\text{volt\_max}}$), doubling constraint count.
+  2. *Allow unconstrained arrays without length or element typing:* Permits malformed arrays (`[]`, `[1, 2, 3]`, `["text"]`) to pass validation silently.
+- **Rationale:** A constrained two-element tuple cleanly models closed physical operating intervals $[L, U]$ while preventing malformed array structures.
+- **Consequences:** Client and solver adapters must strictly emit either a scalar or a two-element array of numbers; arbitrary arrays are rejected at schema validation.
+- **Validation Needed:** Automated schema validation unit tests asserting acceptance of scalars and 2-element arrays, and rejection of 0, 1, or 3+ element arrays.
+- **Conditions Triggering Reconsideration:** Requirement to represent discontinuous multi-interval admissible operating regions (e.g., generator forbidden operating vibration zones).
+
+---
+
+### ADR-012: Ingress and Internal Domain Schema Extensibility Policy (Edge Lenience vs. Core Strictness)
+- **Decision Identifier:** `ADR-012`
+- **Status:** `PROPOSED`
+- **Context:** Canonical contracts under `contracts/schemas/` default to `additionalProperties: true` in JSON Schema Draft-07. We must establish a clear boundary policy regarding how undeclared properties are handled across external ingestion adapters and internal domain services.
+- **Decision:** Adopt a **Tiered Boundary Extensibility Policy**:
+  1. *External Adapter Ingress Boundary (Edge):* Ingress adapters (VAJRA-Ω, AAROHAN-α) maintain controlled forward compatibility. Undeclared properties in incoming payloads are permitted without crashing edge schema validation, allowing external domain systems to deploy non-breaking MINOR version additions.
+  2. *Quarantine & Zero-Influence Invariant:* Any undeclared property ingested at the edge is quarantined into a dedicated raw archive field (`raw_ext_attributes`), and an operational structured warning log is emitted (`UNKNOWN_FIELD_INGESTED`). Quarantined fields are **strictly barred** from influencing mathematical constraint filters, objective calculations, or solver inputs.
+  3. *Internal Decision Core Boundary (Phase 1+):* Internal Pydantic domain models in `services/decision-core/domain/` strictly enforce `model_config = ConfigDict(extra='forbid')`. Internal component communication and state transitions reject undeclared fields immediately to catch property typos during development.
+- **Alternatives Considered:**
+  1. *Closed Schemas at Edge (`additionalProperties: false` in wire schemas):* Causes immediate catastrophic ingestion failure if external systems add minor informational fields before NIRNAYA schema updates.
+  2. *Unrestricted Propagation (Open Schemas Throughout):* Allows unvalidated fields to propagate into mathematical solvers and decision records, creating unvetted side-effects and security injection risks.
+- **Rationale:** Protects operational resilience at the external boundary while guaranteeing mathematical and architectural strictness within the decision engine core.
+- **Consequences:** Ingress adapters must implement explicit attribute sanitization and logging before constructing internal domain models.
+- **Validation Needed:** Contract regression tests verifying that undeclared fields are successfully quarantined and that internal Pydantic models raise validation errors when extra fields are injected.
+- **Conditions Triggering Reconsideration:** Emergence of a zero-tolerance external security mandate requiring strict whitelist schema rejection at the external TLS gateway.
+
+---
+
+### ADR-013: Three-Tier Authorization Governance (Requester, Reviewer, Approver Role Separation)
+- **Decision Identifier:** `ADR-013`
+- **Status:** `PROPOSED`
+- **Context:** In safety-critical power systems, emergency operations (such as load shedding $>10 \text{ MW}$ or intentional bus sectionalizing) carry immense legal, civil, and physical consequences. We must formalize human authority boundaries to prevent unilateral or unvetted actions.
+- **Decision:** Establish a formal **Three-Tier Role Separation Governance Architecture**:
+  1. *Requester (Grid Control Dispatcher):* Formulates decision problems, configures candidate switching/redispatch actions, selects objective priorities, and triggers simulation batches.
+  2. *Reviewer (Senior Grid Controller / Reliability Analyst):* Inspects evaluated Pareto trade-offs, verifies $N-1$ contingency compliance, reviews uncertainty sensitivity curves, and submits a formalized technical endorsement (`human_review_log`).
+  3. *Approver (Incident Commander / Operations Director):* Holds legal and operational authority to authorize the plan for operational dispatch and digital signing (`dual_control_signatures`).
+  4. *Separation of Duties (SoD) Invariant:* For high-impact decisions, the authenticated identity of the Reviewer and Approver must be distinct. Unilateral authorization by a single user is blocked at the API boundary.
+  5. *Cryptographic Decision-Version Binding:* Digital signatures must bind to the exact cryptographic digest of the decision tuple: $\text{Signature} = \text{Sign}_{SK}(\text{SHA256}(\text{case\_id} \parallel \text{problem\_id} \parallel \text{scenario\_id} \parallel \text{evaluation\_hash} \parallel \text{schema\_version}))$. Any subsequent modification to scenario actions or solver parameters invalidates the authorization.
+- **Alternatives Considered:**
+  1. *Single-Operator Full Authority:* High operational velocity, but vulnerable to individual cognitive fatigue, confirmation bias, and accidental catastrophic error during crises.
+  2. *Autonomous Machine Authorization:* Algorithmic execution without human signature. Strictly rejected as a violation of system non-goals and NERC CIP standards.
+- **Rationale:** Redundant human-in-command verification is the foundational safety architecture of high-reliability organizations (nuclear, aviation, grid defense).
+- **Consequences:** High-impact plans require concurrent availability of authenticated senior operations personnel.
+- **Validation Needed:** End-to-end security test suites attempting to sign dual authorization with identical credentials; assert `HTTP 403 Forbidden`.
+- **Conditions Triggering Reconsideration:** Total telecommunication blackout isolating field substations, requiring local islanding protocols under pre-authorized executive emergency standing orders.
+
+---
+
+### ADR-014: Discovery & Handshake Framework for Static Network Model Ingress
+- **Decision Identifier:** `ADR-014`
+- **Status:** `PROPOSED`
+- **Context:** `SystemStateSnapshot` provides dynamic operational state telemetry (line flows, breaker open/close states, generator outputs, bus voltages). However, full power flow simulation (DCPF/ACOPF) requires static network parameters (branch resistance $R$, reactance $X$, susceptance $B$, transformer tap ratios, generator capability curves). We must establish a framework to discover and integrate static network models from VAJRA-Ω or external grid repositories without making unsupported assumptions.
+- **Decision:** Formulate a **Discovery & Handshake Protocol Framework** for Phase 4:
+  1. *Non-Assumption Principle:* NIRNAYA does not assume that VAJRA-Ω currently implements IEC 61970 Common Information Model (CIM), MATPOWER, or any specific serialized model format.
+  2. *Protocol Discovery Checklist:* In Phase 4, establish formal interface agreements covering:
+     - Transport protocol (HTTPS REST polling, binary gRPC streaming, or Kafka/NATS pub/sub).
+     - Network model representation (CIM XML, JSON-LD, IEEE common data format, or custom Protobuf).
+     - Model versioning and topological handshake mechanism.
+  3. *Handshake Architecture:*
+     - External authority publishes a base network model snapshot accompanied by an immutable digest (`topology_digest = sha256:hash`).
+     - Real-time `SystemStateSnapshot` telemetry packets carry `topology_digest_ref` referencing the active base topology.
+     - If telemetry references an unknown or desynchronized `topology_digest`, NIRNAYA rejects real-time simulation and triggers a model resynchronization handshake.
+- **Alternatives Considered:**
+  1. *Bundle full static network branch parameters into every real-time snapshot:* Multi-megabyte payloads for thousands of lines transmitted every 2 seconds; excessive network serialization overhead.
+  2. *Hardcode static benchmark topologies (e.g. IEEE 118-bus) into application binaries:* Prevents integration with real-world dynamic grid models.
+- **Rationale:** Decouples high-volume real-time telemetry from low-frequency static network topology updates while guaranteeing cryptographic version synchronization between physics models and live sensors.
+- **Consequences:** Phase 4 integration adapters must support two distinct data flows: static topology provisioning and real-time operational state streaming.
+- **Validation Needed:** Simulation of network topology updates (e.g. seasonal line impedance adjustment); verify that NIRNAYA detects digest mismatches and triggers handshake re-synchronization.
+- **Conditions Triggering Reconsideration:** Emergence of an industry-standard unified streaming format that efficiently multiplexes static topology and dynamic PMU telemetry over a single zero-overhead stream.
+
+---
+
+## 3. Audit Backlog Register & Owner Decision Framework
+
+The following items identified during the Phase 0 audit are preserved in the engineering backlog with explicit rationales and phase-level exit gates:
+
+### FIND-NIR-03: GeoJSON Geometry Sub-Item Validation
+- **Backlog Item:** `BACKLOG-P1-GEO-01`
+- **Affected Contract:** `contracts/schemas/incident_context.json` (`impact_zone.coordinates`)
+- **Current State:** Typed as `"array"` without an `items` schema validating coordinate depth (e.g., coordinate pairs `[lon, lat]` and linear ring arrays).
+- **Retention Rationale:** Phase 0 canonical schemas represent language-agnostic wire contracts. In JSON Schema Draft-07, fully modeling RFC 7946 GeoJSON Polygon and MultiPolygon geometry structures requires recursive sub-schemas that complicate schema maintenance and risk rejecting valid GeoJSON extensions (e.g., elevation coordinates `[lon, lat, alt]`).
+- **Phase 1 Exit Gate:** Implement a typed GeoJSON validator using Pydantic / Shapely in `services/decision-core/domain/` that enforces:
+  1. Coordinate pairs are valid numeric floating-point values in WGS 84 bounds ($-180 \le \text{lon} \le 180$, $-90 \le \text{lat} \le 90$).
+  2. Polygon linear rings are closed ($C_0 = C_n$) with at least 4 positions.
+  3. Verified by unit test suite `tests/unit/test_incident_geometry.py`.
+
+### FIND-NIR-04: Formal Statistical Definition of `robustness_score`
+- **Backlog Item:** `BACKLOG-P2-ROBUST-01`
+- **Affected Contract:** `contracts/schemas/strategy_comparison.json` (`tradeoff_matrix[].robustness_score`)
+- **Current State:** Defined as `"type": "number", "minimum": 0.0, "maximum": 1.0` without a descriptive docstring.
+- **Retention Rationale:** In Phase 0, mathematical optimization foundations established Pareto non-dominance, bounded regret, and Monte Carlo Latin Hypercube Sampling (LHS). The exact algorithmic derivation of `robustness_score` depends on the numerical solver and uncertainty sampling engine implemented in Phase 2.
+- **Phase 2 Exit Gate:**
+  1. Add an explicit schema description defining `robustness_score` as the empirical constraint satisfaction probability under uncertainty:
+     $$\text{RobustnessScore}(x) = \frac{1}{N_{\text{mc}}} \sum_{s=1}^{N_{\text{mc}}} \mathbb{I}\left( \forall i: g_i(x, u^{(s)}) \le \epsilon_{\text{tol}} \right)$$
+  2. Formally document that `robustness_score` is an uncertainty calibration metric, not a universal multi-objective scalar ranking score.
+  3. Verified by property-based test suite `tests/property/test_uncertainty_robustness.py`.

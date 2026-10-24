@@ -87,7 +87,18 @@
           },
           "target_variable": { "type": "string" },
           "operator": { "type": "string", "enum": ["<=", ">=", "==", "IN_RANGE"] },
-          "limit_value": { "type": ["number", "array"] },
+          "limit_value": {
+            "description": "Scalar limit for inequality/equality constraints, or two-element array [lower_bound, upper_bound] defining a closed interval for IN_RANGE constraints where lower_bound <= upper_bound.",
+            "oneOf": [
+              { "type": "number" },
+              {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            ]
+          },
           "unit": { "type": "string" },
           "tolerance": { "type": "number", "minimum": 0.0 }
         }
@@ -156,7 +167,10 @@
           "source_id": { "type": "string" },
           "evidence_type": { "type": "string" },
           "timestamp": { "type": "string", "format": "date-time" },
-          "cryptographic_digest": { "type": "string" }
+          "cryptographic_digest": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
         }
       }
     }
