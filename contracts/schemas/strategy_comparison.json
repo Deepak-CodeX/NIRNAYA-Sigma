@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nirnaya.ai/schemas/v1/strategy_comparison.json",
+  "title": "StrategyComparison",
+  "description": "Provisional canonical representation of multi-objective strategy evaluation, Pareto classification, and trade-off comparison.",
+  "type": "object",
+  "required": [
+    "comparison_id",
+    "problem_id",
+    "schema_version",
+    "generated_at",
+    "baseline_scenario_id",
+    "pareto_frontier_scenario_ids",
+    "dominated_scenario_ids",
+    "infeasible_scenario_ids",
+    "unknown_scenario_ids",
+    "tradeoff_matrix",
+    "evidence_explanation"
+  ],
+  "properties": {
+    "comparison_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "problem_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "baseline_scenario_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "pareto_frontier_scenario_ids": {
+      "type": "array",
+      "items": { "type": "string", "format": "uuid" },
+      "description": "Scenarios verified to be mathematically non-dominated across all defined objectives."
+    },
+    "dominated_scenario_ids": {
+      "type": "array",
+      "items": { "type": "string", "format": "uuid" },
+      "description": "Scenarios strictly dominated by at least one other feasible scenario."
+    },
+    "infeasible_scenario_ids": {
+      "type": "array",
+      "items": { "type": "string", "format": "uuid" },
+      "description": "Scenarios that violate one or more hard physical constraints."
+    },
+    "unknown_scenario_ids": {
+      "type": "array",
+      "items": { "type": "string", "format": "uuid" },
+      "description": "Scenarios where solver timed out or model envelope was breached. Fail-closed: treated as non-selectable."
+    },
+    "tradeoff_matrix": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["scenario_id", "strategy_name", "objective_values", "delta_vs_baseline", "max_regret"],
+        "properties": {
+          "scenario_id": { "type": "string", "format": "uuid" },
+          "strategy_name": { "type": "string" },
+          "objective_values": { "type": "object" },
+          "delta_vs_baseline": { "type": "object" },
+          "max_regret": { "type": "number", "minimum": 0.0 },
+          "robustness_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+        }
+      }
+    },
+    "evidence_explanation": {
+      "type": "object",
+      "required": ["primary_recommendation_scenario_id", "justification_summary", "tradeoff_narrative", "key_risks"],
+      "properties": {
+        "primary_recommendation_scenario_id": { "type": "string", "format": "uuid" },
+        "justification_summary": { "type": "string" },
+        "tradeoff_narrative": { "type": "string" },
+        "key_risks": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

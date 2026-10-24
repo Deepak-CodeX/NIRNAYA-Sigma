@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nirnaya.ai/schemas/v1/model_evaluation.json",
+  "title": "ModelEvaluation",
+  "description": "Provisional canonical representation of numerical evaluation results for a ScenarioDefinition against domain physics models.",
+  "type": "object",
+  "required": [
+    "evaluation_id",
+    "scenario_id",
+    "schema_version",
+    "evaluated_at",
+    "execution_duration_ms",
+    "outcome_state",
+    "model_envelope_satisfied",
+    "hard_constraint_summary",
+    "objective_metrics",
+    "reproducibility_fingerprint"
+  ],
+  "properties": {
+    "evaluation_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "scenario_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "evaluated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "execution_duration_ms": {
+      "type": "number",
+      "minimum": 0.0
+    },
+    "outcome_state": {
+      "type": "string",
+      "enum": ["FEASIBLE", "INFEASIBLE", "UNKNOWN"],
+      "description": "Feasibility determination. UNKNOWN must never be interpreted as FEASIBLE."
+    },
+    "model_envelope_satisfied": {
+      "type": "boolean",
+      "description": "True if operating parameters stayed within validated physics boundaries."
+    },
+    "hard_constraint_summary": {
+      "type": "object",
+      "required": ["total_evaluated", "violations_count", "violations"],
+      "properties": {
+        "total_evaluated": { "type": "integer", "minimum": 0 },
+        "violations_count": { "type": "integer", "minimum": 0 },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["constraint_id", "target_element", "observed_value", "limit_value", "violation_magnitude", "unit"],
+            "properties": {
+              "constraint_id": { "type": "string" },
+              "target_element": { "type": "string" },
+              "observed_value": { "type": "number" },
+              "limit_value": { "type": "number" },
+              "violation_magnitude": { "type": "number", "minimum": 0.0 },
+              "unit": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "objective_metrics": {
+      "type": "object",
+      "description": "Calculated numerical values for each objective in the DecisionProblem.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["value", "unit", "confidence_interval_95"],
+        "properties": {
+          "value": { "type": "number" },
+          "unit": { "type": "string" },
+          "confidence_interval_95": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    },
+    "sensitivity_indices": {
+      "type": "object",
+      "description": "First-order Sobol indices or gradient sensitivities dObjective/dParam.",
+      "additionalProperties": { "type": "number" }
+    },
+    "reproducibility_fingerprint": {
+      "type": "object",
+      "required": ["solver_name", "solver_version", "seed", "artifact_checksum"],
+      "properties": {
+        "solver_name": { "type": "string" },
+        "solver_version": { "type": "string" },
+        "seed": { "type": "integer" },
+        "artifact_checksum": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    }
+  }
+}

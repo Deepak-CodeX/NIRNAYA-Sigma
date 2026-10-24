@@ -1,0 +1,92 @@
+{
+  "snapshot_id": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+  "schema_version": "v1.0.0",
+  "domain": "power_grid",
+  "source_system": "VAJRA-Ω-EMS",
+  "source_timestamp": "2026-10-24T05:45:00Z",
+  "ingested_at": "2026-10-24T05:45:02Z",
+  "freshness_seconds": 2.0,
+  "telemetry_quality": "VALIDATED",
+  "payload_hash": "sha256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
+  "state_data": {
+    "grid_frequency_hz": 49.98,
+    "substations": [
+      {
+        "substation_id": "SUB-NORTH-400",
+        "status": "ENERGIZED",
+        "nominal_kv": 400.0,
+        "voltage_magnitude_pu": 0.992
+      },
+      {
+        "substation_id": "SUB-CENTRAL-220",
+        "status": "ENERGIZED",
+        "nominal_kv": 220.0,
+        "voltage_magnitude_pu": 0.978
+      },
+      {
+        "substation_id": "SUB-SOUTH-220",
+        "status": "ISLANDED",
+        "nominal_kv": 220.0,
+        "voltage_magnitude_pu": 0.945
+      }
+    ],
+    "transmission_lines": [
+      {
+        "line_id": "TL-400-01",
+        "from_substation": "SUB-NORTH-400",
+        "to_substation": "SUB-CENTRAL-220",
+        "status": "CLOSED",
+        "active_flow_mw": 520.4,
+        "reactive_flow_mvar": 45.1,
+        "thermal_rating_mva": 650.0,
+        "loading_percentage": 80.1
+      },
+      {
+        "line_id": "TL-220-04",
+        "from_substation": "SUB-CENTRAL-220",
+        "to_substation": "SUB-SOUTH-220",
+        "status": "TRIPPED_AUTO",
+        "active_flow_mw": 0.0,
+        "reactive_flow_mvar": 0.0,
+        "thermal_rating_mva": 320.0,
+        "loading_percentage": 0.0
+      }
+    ],
+    "generation_units": [
+      {
+        "generator_id": "GEN-THERMAL-N1",
+        "substation_id": "SUB-NORTH-400",
+        "status": "SYNCHRONIZED",
+        "active_output_mw": 600.0,
+        "min_capacity_mw": 150.0,
+        "max_capacity_mw": 800.0,
+        "ramp_rate_mw_per_min": 15.0
+      },
+      {
+        "generator_id": "GEN-HYDRO-S1",
+        "substation_id": "SUB-SOUTH-220",
+        "status": "RAMPING_UP",
+        "active_output_mw": 120.0,
+        "min_capacity_mw": 20.0,
+        "max_capacity_mw": 250.0,
+        "ramp_rate_mw_per_min": 50.0
+      }
+    ],
+    "load_buses": [
+      {
+        "bus_id": "BUS-HOSPITAL-PRIORITY-1",
+        "active_demand_mw": 18.5,
+        "served_power_mw": 18.5,
+        "shed_power_mw": 0.0,
+        "priority_tier": 1
+      },
+      {
+        "bus_id": "BUS-INDUSTRIAL-PARK-B",
+        "active_demand_mw": 95.0,
+        "served_power_mw": 65.0,
+        "shed_power_mw": 30.0,
+        "priority_tier": 4
+      }
+    ]
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nirnaya.ai/schemas/v1/incident_context.json",
+  "title": "IncidentContext",
+  "description": "Provisional canonical representation of incident, hazard, and field emergency context ingested from domain authorities (e.g., AAROHAN-α).",
+  "type": "object",
+  "required": [
+    "incident_id",
+    "schema_version",
+    "source_system",
+    "reported_at",
+    "severity_level",
+    "incident_type",
+    "status",
+    "impact_zone",
+    "critical_assets_at_risk"
+  ],
+  "properties": {
+    "incident_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier of incident record."
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "source_system": {
+      "type": "string",
+      "description": "Originating authority system (e.g., 'AAROHAN-α-EOC', 'DISASTER-MGMT-PORTAL')."
+    },
+    "reported_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "severity_level": {
+      "type": "string",
+      "enum": ["INFORMATIONAL", "MINOR", "MAJOR", "SEVERE", "CRITICAL"]
+    },
+    "incident_type": {
+      "type": "string",
+      "enum": [
+        "EXTREME_WEATHER_WIND",
+        "FLOOD_INUNDATION",
+        "WILDFIRE",
+        "PHYSICAL_ATTACK",
+        "CYBER_ANOMALY",
+        "EQUIPMENT_EXPLOSION",
+        "CASCADING_OUTAGE"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE_ESCALATING", "ACTIVE_STABLE", "CONTAINED", "RESOLVED"]
+    },
+    "impact_zone": {
+      "type": "object",
+      "required": ["geographic_type", "coordinates"],
+      "properties": {
+        "geographic_type": { "type": "string", "enum": ["POLYGON", "POINT_RADIUS", "MULTI_POLYGON"] },
+        "coordinates": {
+          "type": "array",
+          "description": "GeoJSON coordinate structure representing perimeter of hazard impact."
+        },
+        "buffer_radius_meters": { "type": "number", "minimum": 0.0 }
+      }
+    },
+    "critical_assets_at_risk": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["facility_id", "facility_name", "category", "backup_power_hours_remaining"],
+        "properties": {
+          "facility_id": { "type": "string" },
+          "facility_name": { "type": "string" },
+          "category": {
+            "type": "string",
+            "enum": ["HOSPITAL_TRAUMA", "WATER_PUMPING_TREATMENT", "EMERGENCY_DISPATCH", "FIRE_STATION", "TELECOM_NODE"]
+          },
+          "connected_substation_id": { "type": "string" },
+          "backup_power_hours_remaining": { "type": "number", "minimum": 0.0 },
+          "life_safety_criticality": { "type": "integer", "minimum": 1, "maximum": 5 }
+        }
+      }
+    },
+    "environmental_metrics": {
+      "type": "object",
+      "properties": {
+        "wind_gust_mps": { "type": "number", "minimum": 0.0 },
+        "ambient_temp_celsius": { "type": "number" },
+        "flood_water_depth_cm": { "type": "number", "minimum": 0.0 }
+      }
+    }
+  }
+}

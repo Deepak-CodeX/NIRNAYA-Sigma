@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nirnaya.ai/schemas/v1/scenario_definition.json",
+  "title": "ScenarioDefinition",
+  "description": "Provisional canonical representation of a deterministic or stochastic scenario evaluation run within a DecisionProblem.",
+  "type": "object",
+  "required": [
+    "scenario_id",
+    "problem_id",
+    "schema_version",
+    "strategy_name",
+    "strategy_type",
+    "selected_action_ids",
+    "action_parameter_assignments",
+    "contingency_disturbance_timeline",
+    "solver_configuration",
+    "simulation_seed"
+  ],
+  "properties": {
+    "scenario_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "problem_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "strategy_name": {
+      "type": "string"
+    },
+    "strategy_type": {
+      "type": "string",
+      "enum": ["BASELINE_DO_NOTHING", "RAPID_ISLANDING", "SELECTIVE_FEEDER_SHED", "TRANSMISSION_RECONFIGURATION", "STORAGE_INJECTION"]
+    },
+    "selected_action_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "action_parameter_assignments": {
+      "type": "object",
+      "description": "Explicit parameter values assigned to candidate actions in this scenario (e.g. redispatch MW values)."
+    },
+    "contingency_disturbance_timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["offset_seconds", "event_type", "target_element"],
+        "properties": {
+          "offset_seconds": { "type": "number", "minimum": 0.0 },
+          "event_type": { "type": "string", "enum": ["LINE_TRIP", "GEN_TRIP", "LOAD_STEP", "WEATHER_EVENT"] },
+          "target_element": { "type": "string" },
+          "severity": { "type": "number" }
+        }
+      }
+    },
+    "solver_configuration": {
+      "type": "object",
+      "required": ["model_id", "convergence_tolerance", "max_iterations", "timeout_seconds"],
+      "properties": {
+        "model_id": { "type": "string" },
+        "convergence_tolerance": { "type": "number", "minimum": 0.0 },
+        "max_iterations": { "type": "integer", "minimum": 1 },
+        "timeout_seconds": { "type": "number", "minimum": 1.0 }
+      }
+    },
+    "simulation_seed": {
+      "type": "integer",
+      "description": "64-bit integer seed for deterministic numerical reproducibility."
+    }
+  }
+}

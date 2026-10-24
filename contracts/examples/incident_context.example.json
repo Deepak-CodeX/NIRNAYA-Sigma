@@ -1,0 +1,45 @@
+{
+  "incident_id": "b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e",
+  "schema_version": "v1.0.0",
+  "source_system": "AAROHAN-α-EOC",
+  "reported_at": "2026-10-24T05:40:00Z",
+  "severity_level": "SEVERE",
+  "incident_type": "EXTREME_WEATHER_WIND",
+  "status": "ACTIVE_ESCALATING",
+  "impact_zone": {
+    "geographic_type": "POLYGON",
+    "coordinates": [
+      [
+        [77.1025, 28.7041],
+        [77.2500, 28.7041],
+        [77.2500, 28.5500],
+        [77.1025, 28.5500],
+        [77.1025, 28.7041]
+      ]
+    ],
+    "buffer_radius_meters": 2500.0
+  },
+  "critical_assets_at_risk": [
+    {
+      "facility_id": "FAC-METRO-TRAUMA-01",
+      "facility_name": "Metropolitan Apex Trauma Centre",
+      "category": "HOSPITAL_TRAUMA",
+      "connected_substation_id": "SUB-CENTRAL-220",
+      "backup_power_hours_remaining": 4.5,
+      "life_safety_criticality": 1
+    },
+    {
+      "facility_id": "FAC-MUNICIPAL-WATER-03",
+      "facility_name": "North Reservoir Treatment & Pumping",
+      "category": "WATER_PUMPING_TREATMENT",
+      "connected_substation_id": "SUB-NORTH-400",
+      "backup_power_hours_remaining": 8.0,
+      "life_safety_criticality": 2
+    }
+  ],
+  "environmental_metrics": {
+    "wind_gust_mps": 32.5,
+    "ambient_temp_celsius": 18.2,
+    "flood_water_depth_cm": 0.0
+  }
+}

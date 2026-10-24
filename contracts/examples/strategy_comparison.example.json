@@ -1,0 +1,61 @@
+{
+  "comparison_id": "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c",
+  "problem_id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+  "schema_version": "v1.0.0",
+  "generated_at": "2026-10-24T05:47:00Z",
+  "baseline_scenario_id": "00000000-0000-0000-0000-000000000001",
+  "pareto_frontier_scenario_ids": [
+    "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
+    "11111111-2222-3333-4444-555555555555"
+  ],
+  "dominated_scenario_ids": [
+    "22222222-3333-4444-5555-666666666666"
+  ],
+  "infeasible_scenario_ids": [
+    "33333333-4444-5555-6666-777777777777"
+  ],
+  "unknown_scenario_ids": [],
+  "tradeoff_matrix": [
+    {
+      "scenario_id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
+      "strategy_name": "STRAT-HYDRO-REDISPATCH-AND-CURTAIL",
+      "objective_values": {
+        "OBJ-EUE": 14.2,
+        "OBJ-CRITICAL-FACILITY-OUTAGE": 0.0,
+        "OBJ-OPERATIONAL-COST": 4850.0
+      },
+      "delta_vs_baseline": {
+        "OBJ-EUE": -85.8,
+        "OBJ-CRITICAL-FACILITY-OUTAGE": -4.5,
+        "OBJ-OPERATIONAL-COST": 4850.0
+      },
+      "max_regret": 120.0,
+      "robustness_score": 0.94
+    },
+    {
+      "scenario_id": "11111111-2222-3333-4444-555555555555",
+      "strategy_name": "STRAT-MAX-LOCAL-BATTERY-DISCHARGE",
+      "objective_values": {
+        "OBJ-EUE": 8.5,
+        "OBJ-CRITICAL-FACILITY-OUTAGE": 0.0,
+        "OBJ-OPERATIONAL-COST": 12500.0
+      },
+      "delta_vs_baseline": {
+        "OBJ-EUE": -91.5,
+        "OBJ-CRITICAL-FACILITY-OUTAGE": -4.5,
+        "OBJ-OPERATIONAL-COST": 12500.0
+      },
+      "max_regret": 350.0,
+      "robustness_score": 0.88
+    }
+  ],
+  "evidence_explanation": {
+    "primary_recommendation_scenario_id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
+    "justification_summary": "Strategy STRAT-HYDRO-REDISPATCH-AND-CURTAIL prevents all critical trauma hospital outages while reducing unserved energy by 85.8 MWh at 61% lower redispatch cost than battery-depleting alternatives.",
+    "tradeoff_narrative": "STRAT-MAX-LOCAL-BATTERY-DISCHARGE saves an additional 5.7 MWh of industrial load, but costs $7,650 more and completely exhausts emergency storage reserves ahead of incoming secondary squalls.",
+    "key_risks": [
+      "Hydro ramp rate is within 85% of physical maximum limit.",
+      "Industrial park curtailment must be communicated to district load dispatchers within 5 minutes."
+    ]
+  }
+}

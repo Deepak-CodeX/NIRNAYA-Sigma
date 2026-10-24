@@ -1,0 +1,126 @@
+{
+  "problem_id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+  "schema_version": "v1.0.0",
+  "created_at": "2026-10-24T05:46:10Z",
+  "decision_maker_context": {
+    "role": "SENIOR_GRID_CONTROLLER",
+    "jurisdiction": "NORTHERN_REGIONAL_DESPATCH",
+    "operator_id": "OP-9842"
+  },
+  "state_snapshot_id": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+  "incident_context_ids": [
+    "b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e"
+  ],
+  "candidate_actions": [
+    {
+      "action_id": "ACT-REDISPATCH-HYDRO",
+      "action_type": "GENERATOR_REDISPATCH",
+      "target_element_id": "GEN-HYDRO-S1",
+      "parameters": { "target_output_mw": 200.0 },
+      "execution_latency_minutes": 2.0
+    },
+    {
+      "action_id": "ACT-CLOSE-TL-220-04",
+      "action_type": "TRANSMISSION_LINE_SWITCH",
+      "target_element_id": "TL-220-04",
+      "parameters": { "command": "RECLOSE_BREAKER" },
+      "execution_latency_minutes": 0.5
+    },
+    {
+      "action_id": "ACT-SHED-IND-PARK-B",
+      "action_type": "CONTROLLED_LOAD_SHED",
+      "target_element_id": "BUS-INDUSTRIAL-PARK-B",
+      "parameters": { "curtailment_mw": 50.0 },
+      "execution_latency_minutes": 0.2
+    }
+  ],
+  "hard_constraints": [
+    {
+      "constraint_id": "HC-THERMAL-TL-400-01",
+      "category": "THERMAL_CURRENT_LIMIT",
+      "target_variable": "TL-400-01.loading_percentage",
+      "operator": "<=",
+      "limit_value": 100.0,
+      "unit": "PERCENT",
+      "tolerance": 0.5
+    },
+    {
+      "constraint_id": "HC-VOLTAGE-SUB-SOUTH",
+      "category": "VOLTAGE_STABILITY_BAND",
+      "target_variable": "SUB-SOUTH-220.voltage_magnitude_pu",
+      "operator": "IN_RANGE",
+      "limit_value": [0.95, 1.05],
+      "unit": "PER_UNIT",
+      "tolerance": 0.005
+    }
+  ],
+  "soft_constraints": [
+    {
+      "constraint_id": "SC-SWITCHING-FATIGUE",
+      "category": "SWITCHING_CYCLE_PENALTY",
+      "preferred_target": 2.0,
+      "penalty_weight": 150.0
+    }
+  ],
+  "objectives": [
+    {
+      "objective_id": "OBJ-EUE",
+      "name": "Expected Unserved Energy",
+      "direction": "MINIMIZE",
+      "unit": "MWH",
+      "evaluation_expression": "integral(sum(shed_power_mw) dt)",
+      "priority_rank": 1
+    },
+    {
+      "objective_id": "OBJ-CRITICAL-FACILITY-OUTAGE",
+      "name": "Critical Infrastructure Outage Risk",
+      "direction": "MINIMIZE",
+      "unit": "HOURS",
+      "evaluation_expression": "sum(tier1_outage_hours)",
+      "priority_rank": 2
+    },
+    {
+      "objective_id": "OBJ-OPERATIONAL-COST",
+      "name": "Operational Redispatch Cost",
+      "direction": "MINIMIZE",
+      "unit": "USD",
+      "evaluation_expression": "sum(redispatch_cost_usd)",
+      "priority_rank": 3
+    }
+  ],
+  "domain_model_references": [
+    {
+      "model_id": "MOD-DCPF-SOLVER-01",
+      "engine_type": "DC_POWER_FLOW",
+      "version": "v2.4.1",
+      "fidelity_tier": "SCREENING"
+    },
+    {
+      "model_id": "MOD-ACOPF-SOLVER-02",
+      "engine_type": "AC_OPTIMAL_POWER_FLOW",
+      "version": "v1.8.0",
+      "fidelity_tier": "HIGH_FIDELITY"
+    }
+  ],
+  "uncertainty_parameters": [
+    {
+      "parameter_name": "WIND_GUST_TRIP_PROBABILITY",
+      "uncertainty_type": "ALEATORY_STOCHASTIC",
+      "distribution_type": "TRUNCATED_NORMAL",
+      "parameters": {
+        "mean": 0.15,
+        "std_dev": 0.05,
+        "lower_bound": 0.0,
+        "upper_bound": 0.6
+      }
+    }
+  ],
+  "evidence_chain": [
+    {
+      "source_id": "VAJRA-Ω-EMS",
+      "evidence_type": "SCADA_TELEMETRY_SNAPSHOT",
+      "timestamp": "2026-10-24T05:45:00Z",
+      "cryptographic_digest": "sha256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069"
+    }
+  ]
+}

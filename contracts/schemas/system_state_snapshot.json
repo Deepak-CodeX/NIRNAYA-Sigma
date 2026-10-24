@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nirnaya.ai/schemas/v1/system_state_snapshot.json",
+  "title": "SystemStateSnapshot",
+  "description": "Provisional canonical representation of external physical system state ingested from domain authorities (e.g., VAJRA-Ω).",
+  "type": "object",
+  "required": [
+    "snapshot_id",
+    "schema_version",
+    "domain",
+    "source_system",
+    "source_timestamp",
+    "ingested_at",
+    "freshness_seconds",
+    "telemetry_quality",
+    "payload_hash",
+    "state_data"
+  ],
+  "properties": {
+    "snapshot_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this snapshot instance."
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semantic version of the snapshot contract."
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["power_grid", "emergency_operations", "transportation", "multimodal"],
+      "description": "Operational domain of the snapshot."
+    },
+    "source_system": {
+      "type": "string",
+      "description": "Originating authority system (e.g., 'VAJRA-Ω-EMS', 'SCADA-GATEWAY-01')."
+    },
+    "source_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when telemetry was sampled at origin."
+    },
+    "ingested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when NIRNAYA ingested and validated the snapshot."
+    },
+    "freshness_seconds": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Elapsed duration between source sampling and ingestion."
+    },
+    "telemetry_quality": {
+      "type": "string",
+      "enum": ["VALIDATED", "DEGRADED", "ESTIMATED", "UNRELIABLE"],
+      "description": "Confidence classification of telemetry state."
+    },
+    "payload_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Cryptographic SHA-256 hash of raw source payload for provenance."
+    },
+    "state_data": {
+      "type": "object",
+      "description": "Domain-specific physical network state. In power grid domain: buses, lines, generators, loads.",
+      "required": ["grid_frequency_hz", "substations", "transmission_lines", "generation_units", "load_buses"],
+      "properties": {
+        "grid_frequency_hz": {
+          "type": "number",
+          "description": "System frequency in Hertz."
+        },
+        "substations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["substation_id", "status", "nominal_kv"],
+            "properties": {
+              "substation_id": { "type": "string" },
+              "status": { "type": "string", "enum": ["ENERGIZED", "DE_ENERGIZED", "ISLANDED", "FAULTED"] },
+              "nominal_kv": { "type": "number", "minimum": 0.0 },
+              "voltage_magnitude_pu": { "type": "number", "minimum": 0.0 }
+            }
+          }
+        },
+        "transmission_lines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["line_id", "from_substation", "to_substation", "status", "active_flow_mw", "thermal_rating_mva"],
+            "properties": {
+              "line_id": { "type": "string" },
+              "from_substation": { "type": "string" },
+              "to_substation": { "type": "string" },
+              "status": { "type": "string", "enum": ["CLOSED", "OPEN", "TRIPPED_AUTO", "MAINTENANCE_LOCKOUT"] },
+              "active_flow_mw": { "type": "number" },
+              "reactive_flow_mvar": { "type": "number" },
+              "thermal_rating_mva": { "type": "number", "minimum": 0.0 },
+              "loading_percentage": { "type": "number", "minimum": 0.0 }
+            }
+          }
+        },
+        "generation_units": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["generator_id", "substation_id", "status", "active_output_mw", "max_capacity_mw"],
+            "properties": {
+              "generator_id": { "type": "string" },
+              "substation_id": { "type": "string" },
+              "status": { "type": "string", "enum": ["SYNCHRONIZED", "OFFLINE", "RAMPING_UP", "TRIPPED"] },
+              "active_output_mw": { "type": "number", "minimum": 0.0 },
+              "min_capacity_mw": { "type": "number", "minimum": 0.0 },
+              "max_capacity_mw": { "type": "number", "minimum": 0.0 },
+              "ramp_rate_mw_per_min": { "type": "number", "minimum": 0.0 }
+            }
+          }
+        },
+        "load_buses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["bus_id", "active_demand_mw", "served_power_mw", "priority_tier"],
+            "properties": {
+              "bus_id": { "type": "string" },
+              "active_demand_mw": { "type": "number", "minimum": 0.0 },
+              "served_power_mw": { "type": "number", "minimum": 0.0 },
+              "shed_power_mw": { "type": "number", "minimum": 0.0 },
+              "priority_tier": { "type": "integer", "minimum": 1, "maximum": 5, "description": "1 is highest critical priority (hospitals, life support), 5 is interruptible." }
+            }
+          }
+        }
+      }
+    }
+  }
+}

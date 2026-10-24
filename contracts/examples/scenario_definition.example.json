@@ -1,0 +1,34 @@
+{
+  "scenario_id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
+  "problem_id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+  "schema_version": "v1.0.0",
+  "strategy_name": "STRAT-HYDRO-REDISPATCH-AND-CURTAIL",
+  "strategy_type": "SELECTIVE_FEEDER_SHED",
+  "selected_action_ids": [
+    "ACT-REDISPATCH-HYDRO",
+    "ACT-SHED-IND-PARK-B"
+  ],
+  "action_parameter_assignments": {
+    "ACT-REDISPATCH-HYDRO": {
+      "target_output_mw": 180.0
+    },
+    "ACT-SHED-IND-PARK-B": {
+      "curtailment_mw": 35.0
+    }
+  },
+  "contingency_disturbance_timeline": [
+    {
+      "offset_seconds": 60.0,
+      "event_type": "LINE_TRIP",
+      "target_element": "TL-220-04",
+      "severity": 1.0
+    }
+  ],
+  "solver_configuration": {
+    "model_id": "MOD-ACOPF-SOLVER-02",
+    "convergence_tolerance": 0.0001,
+    "max_iterations": 200,
+    "timeout_seconds": 15.0
+  },
+  "simulation_seed": 4294967295
+}

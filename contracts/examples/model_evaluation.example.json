@@ -1,0 +1,41 @@
+{
+  "evaluation_id": "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b",
+  "scenario_id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
+  "schema_version": "v1.0.0",
+  "evaluated_at": "2026-10-24T05:46:45Z",
+  "execution_duration_ms": 420.5,
+  "outcome_state": "FEASIBLE",
+  "model_envelope_satisfied": true,
+  "hard_constraint_summary": {
+    "total_evaluated": 2,
+    "violations_count": 0,
+    "violations": []
+  },
+  "objective_metrics": {
+    "OBJ-EUE": {
+      "value": 14.2,
+      "unit": "MWH",
+      "confidence_interval_95": [12.1, 16.5]
+    },
+    "OBJ-CRITICAL-FACILITY-OUTAGE": {
+      "value": 0.0,
+      "unit": "HOURS",
+      "confidence_interval_95": [0.0, 0.0]
+    },
+    "OBJ-OPERATIONAL-COST": {
+      "value": 4850.0,
+      "unit": "USD",
+      "confidence_interval_95": [4600.0, 5100.0]
+    }
+  },
+  "sensitivity_indices": {
+    "dEUE_dHydroRamp": -0.18,
+    "dCost_dHydroRamp": 45.2
+  },
+  "reproducibility_fingerprint": {
+    "solver_name": "HiGHS-ACOPF-Engine",
+    "solver_version": "1.7.2",
+    "seed": 4294967295,
+    "artifact_checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

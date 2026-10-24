@@ -1,0 +1,164 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nirnaya.ai/schemas/v1/decision_problem.json",
+  "title": "DecisionProblem",
+  "description": "Provisional canonical representation of a structured decision problem instance: D = (S, A, C, O, M, U, E).",
+  "type": "object",
+  "required": [
+    "problem_id",
+    "schema_version",
+    "created_at",
+    "decision_maker_context",
+    "state_snapshot_id",
+    "incident_context_ids",
+    "candidate_actions",
+    "hard_constraints",
+    "soft_constraints",
+    "objectives",
+    "domain_model_references",
+    "uncertainty_parameters",
+    "evidence_chain"
+  ],
+  "properties": {
+    "problem_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decision_maker_context": {
+      "type": "object",
+      "required": ["role", "jurisdiction", "operator_id"],
+      "properties": {
+        "role": { "type": "string" },
+        "jurisdiction": { "type": "string" },
+        "operator_id": { "type": "string" }
+      }
+    },
+    "state_snapshot_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "incident_context_ids": {
+      "type": "array",
+      "items": { "type": "string", "format": "uuid" }
+    },
+    "candidate_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action_id", "action_type", "target_element_id", "parameters"],
+        "properties": {
+          "action_id": { "type": "string" },
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "TRANSMISSION_LINE_SWITCH",
+              "BUS_COUPLER_OPERATION",
+              "GENERATOR_REDISPATCH",
+              "BATTERY_CHARGE_DISCHARGE",
+              "CONTROLLED_LOAD_SHED",
+              "ISLAND_FORMATION",
+              "MOBILE_SUBSTATION_DEPLOYMENT"
+            ]
+          },
+          "target_element_id": { "type": "string" },
+          "parameters": { "type": "object" },
+          "execution_latency_minutes": { "type": "number", "minimum": 0.0 }
+        }
+      }
+    },
+    "hard_constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["constraint_id", "category", "target_variable", "operator", "limit_value", "unit", "tolerance"],
+        "properties": {
+          "constraint_id": { "type": "string" },
+          "category": {
+            "type": "string",
+            "enum": ["THERMAL_CURRENT_LIMIT", "VOLTAGE_STABILITY_BAND", "FREQUENCY_RESERVE_LIMIT", "GENERATOR_RAMP_LIMIT", "ISLAND_RESOURCE_ADEQUACY"]
+          },
+          "target_variable": { "type": "string" },
+          "operator": { "type": "string", "enum": ["<=", ">=", "==", "IN_RANGE"] },
+          "limit_value": { "type": ["number", "array"] },
+          "unit": { "type": "string" },
+          "tolerance": { "type": "number", "minimum": 0.0 }
+        }
+      }
+    },
+    "soft_constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["constraint_id", "category", "preferred_target", "penalty_weight"],
+        "properties": {
+          "constraint_id": { "type": "string" },
+          "category": { "type": "string" },
+          "preferred_target": { "type": "number" },
+          "penalty_weight": { "type": "number", "minimum": 0.0 }
+        }
+      }
+    },
+    "objectives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["objective_id", "name", "direction", "unit", "evaluation_expression"],
+        "properties": {
+          "objective_id": { "type": "string" },
+          "name": { "type": "string" },
+          "direction": { "type": "string", "enum": ["MINIMIZE", "MAXIMIZE"] },
+          "unit": { "type": "string" },
+          "evaluation_expression": { "type": "string" },
+          "priority_rank": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "domain_model_references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["model_id", "engine_type", "version", "fidelity_tier"],
+        "properties": {
+          "model_id": { "type": "string" },
+          "engine_type": { "type": "string", "enum": ["DC_POWER_FLOW", "AC_OPTIMAL_POWER_FLOW", "TRANSIENT_DYNAMICS", "EMPIRICAL_SURROGATE"] },
+          "version": { "type": "string" },
+          "fidelity_tier": { "type": "string", "enum": ["SCREENING", "DETAILED", "HIGH_FIDELITY"] }
+        }
+      }
+    },
+    "uncertainty_parameters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["parameter_name", "uncertainty_type", "distribution_type", "parameters"],
+        "properties": {
+          "parameter_name": { "type": "string" },
+          "uncertainty_type": { "type": "string", "enum": ["ALEATORY_STOCHASTIC", "EPISTEMIC_BOUNDED"] },
+          "distribution_type": { "type": "string", "enum": ["UNIFORM_INTERVAL", "NORMAL_GAUSSIAN", "TRUNCATED_NORMAL", "DISCRETE_SCENARIO"] },
+          "parameters": { "type": "object" }
+        }
+      }
+    },
+    "evidence_chain": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "evidence_type", "timestamp", "cryptographic_digest"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "evidence_type": { "type": "string" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "cryptographic_digest": { "type": "string" }
+        }
+      }
+    }
+  }
+}

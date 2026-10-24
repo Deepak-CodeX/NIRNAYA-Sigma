@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nirnaya.ai/schemas/v1/decision_record.json",
+  "title": "DecisionRecord",
+  "description": "Provisional canonical representation of an auditable, human-reviewed, and authorized decision record.",
+  "type": "object",
+  "required": [
+    "record_id",
+    "problem_id",
+    "comparison_id",
+    "schema_version",
+    "created_at",
+    "selected_scenario_id",
+    "authorization_state",
+    "human_review_log",
+    "dual_control_signatures",
+    "audit_trail"
+  ],
+  "properties": {
+    "record_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "problem_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "comparison_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "selected_scenario_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "authorization_state": {
+      "type": "string",
+      "enum": ["PROPOSED", "UNDER_REVIEW", "AUTHORIZED", "REJECTED", "REVOKED", "SUPERSEDED"]
+    },
+    "human_review_log": {
+      "type": "object",
+      "required": ["operator_id", "operator_role", "review_timestamp", "rationale_for_selection"],
+      "properties": {
+        "operator_id": { "type": "string" },
+        "operator_role": { "type": "string" },
+        "review_timestamp": { "type": "string", "format": "date-time" },
+        "rationale_for_selection": { "type": "string" },
+        "overridden_recommendation": { "type": "boolean" },
+        "override_justification": { "type": "string" }
+      }
+    },
+    "dual_control_signatures": {
+      "type": "object",
+      "description": "Enforces Four-Eyes principle for safety-critical operational decisions.",
+      "required": ["primary_sign_off"],
+      "properties": {
+        "primary_sign_off": {
+          "type": "object",
+          "required": ["user_id", "user_name", "role", "timestamp", "digital_signature"],
+          "properties": {
+            "user_id": { "type": "string" },
+            "user_name": { "type": "string" },
+            "role": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" },
+            "digital_signature": { "type": "string" }
+          }
+        },
+        "secondary_sign_off": {
+          "type": "object",
+          "description": "Mandatory for high-impact/emergency switching decisions.",
+          "required": ["user_id", "user_name", "role", "timestamp", "digital_signature"],
+          "properties": {
+            "user_id": { "type": "string" },
+            "user_name": { "type": "string" },
+            "role": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" },
+            "digital_signature": { "type": "string" }
+          }
+        }
+      }
+    },
+    "operational_dispatch_status": {
+      "type": "string",
+      "enum": ["NOT_DISPATCHED", "PENDING_OPERATOR_MANUAL_ENTRY", "EXPORTED_TO_OPERATIONS", "ACKNOWLEDGED_BY_SCADA"]
+    },
+    "audit_trail": {
+      "type": "object",
+      "required": ["record_hash", "previous_record_hash", "signature_algorithm"],
+      "properties": {
+        "record_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "previous_record_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "signature_algorithm": { "type": "string", "enum": ["RSA-PSS-SHA256", "ECDSA-P256-SHA256", "ED25519"] }
+      }
+    }
+  }
+}
